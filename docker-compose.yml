@@ -1,0 +1,61 @@
+version: '3'
+services:
+
+  app:
+    build:
+      args:
+        user: lara
+        uid: 1000
+      context: ./
+    container_name: laravel-app
+    restart: unless-stopped
+    working_dir: /var/www/
+    volumes:
+      - ./:/var/www
+    networks:
+      - lara
+
+  nginx:
+    build: ./nginx
+    ports:
+      - 8000:80
+    volumes:
+      - ./nginx/app.conf:/etc/nginx/nginx.conf:ro
+      - ./:/var/www
+    restart: always
+    depends_on:
+      - db
+      - app
+    networks:
+      - lara
+
+  db:
+    image: mariadb
+    ports:
+      - 3306:3306
+    restart: always
+    volumes:
+      - db_data:/var/lib/mysql
+    command:
+      - "--character-set-server=utf8mb4"
+      - "--collation-server=utf8mb4_unicode_ci"
+    env_file: .env
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_ALLOW_EMPTY_PASSWORD=0
+      - MYSQL_USER=${DB_USERNAME}
+      - MYSQL_PASSWORD=${DB_PASSWORD}
+      - MYSQL_DATABASE=${DB_DATABASE}
+      - TZ=Europe/Paris
+    networks:
+      - lara
+
+networks:
+  lara:
+    driver: bridge
+
+volumes:
+  db_data:
+    driver: local
+  redis_data:
+  content:
