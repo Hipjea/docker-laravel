@@ -4,7 +4,6 @@ FROM php:7.4-fpm
 ARG user
 ARG uid
 
-# Install system dependencies
 RUN apt-get update && apt-get install -y \
     git \
     curl \
@@ -13,25 +12,29 @@ RUN apt-get update && apt-get install -y \
     libxml2-dev \
     libmcrypt-dev \
     zip \
-    unzip
-RUN pecl install mcrypt-1.0.4 \
+    unzip \
+    nodejs \
+    npm
+RUN pecl install mcrypt-1.0.4
+RUN npm cache clean -f
+RUN npm install -g n
+RUN n stable
 
 # Clear cache
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Install PHP extensions
+# PHP extensions
 RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd
 RUN docker-php-ext-enable mcrypt
 
-# Get latest Composer
+# Latest Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Create system user to run Composer and Artisan Commands
+# Create system user to run Composer and Artisan commands
 RUN useradd -G www-data,root -u $uid -d /home/$user $user
 RUN mkdir -p /home/$user/.composer && \
     chown -R $user:$user /home/$user
 
-# Set working directory
 WORKDIR /var/www
 
 USER $user
