@@ -2,6 +2,8 @@
 
 @section('title', 'Page Title')
 
+<h1 class="text-3xl font-bold underline">Title</h1>
+
 @section('sidebar')
     @parent
 
